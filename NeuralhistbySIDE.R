@@ -2,8 +2,7 @@
 neuralhist = function(path, startt=0, endt, binw, psthmin, psthmax, event, cueexonly=F, side="both", allResults=F) { 
   
   # Load necessary functions
-
-  functionFolder <- paste(getwd(), "/ALL HYBRID/Functions/", sep="")        
+  functionFolder <- paste(getwd(), "/Functions/", sep="")        
   load(file = paste(functionFolder, "eventfinder.r", sep=""))
   load(file = paste(functionFolder, "neuraldataextract.r", sep=""))
   
@@ -14,25 +13,21 @@ neuralhist = function(path, startt=0, endt, binw, psthmin, psthmax, event, cueex
   nexdata = lapply(nexfiles, function(x) {
         neuraldataextract.r(paste(path, x, sep = ""))})
   
-  #for debugging purposes
-  #nexdata = list()
-  #for(i in (1:length(nexfiles))) (
-  #   nexdata[[i]] = neuraldataextract(paste(path, nexfiles[i], sep = ""))) 
+
+  ### These two functions split up the NEURONS vs BEHAVIORAL EVENTS for each experiment
   
-  
-  ###these two functions split up the neurons and the behavioral events for each experiment
-  
-  # The first one will select neurons in either drug-treated side, saline-treated side or both sides (based on "side" parameter)
-  neurons = lapply(seq(1, length(nexdata)), function(x, drugornot=side) {
-    nexnames = names(nexdata[[x]])
-    neuronidx = grep("sig", nexnames)
+    #### Selection of hemisphere based on "SIDE" parameter ("drug": drug-treated side; "vehicle":saline treated side; "both":both sides)
+   neurons = lapply(seq(1, length(nexdata)), function(x, drugornot=side) {
+   nexnames = names(nexdata[[x]])
+   neuronidx = grep("sig", nexnames)
     
-    #### SELECTION OF HEMISPHERE BASED ON "SIDE" PARAMETER ("drug": AP5-treated side; "vehicle":veh treated side; "both":both sides)
     neuronumbers <- as.numeric(substr(nexnames[neuronidx], 4, 6))
     code <- c()
     for(i in 1:length(neuronumbers)){
       if(neuronumbers[i]<=8){code[i]="L"} else {code[i]="R"} #I'm pretty sure channels 1-8 are RIGHT hemisphere and 9-16 are LEFT hemisphere in all rats
     }
+	   
+    # In this part of the code you have to enter your rats manually because the selection of neurons depends on two things: whether the RIGHT connector was in the front or back, and also on WHICH SIDE of the brain the drug was infused
     if(drugornot=="drug"){
             # These rats were given infusions in RIGHT hemisphere
             if(nexdata[[x]]$ratname=="90"){neuronidx <- neuronidx[code=="L"]}
@@ -77,8 +72,7 @@ neuralhist = function(path, startt=0, endt, binw, psthmin, psthmax, event, cueex
     
     })
   
-  
-  
+	
   events = eventfinder.r(nexdata, event)
   
   #######################################################################
@@ -232,5 +226,5 @@ neuralhist = function(path, startt=0, endt, binw, psthmin, psthmax, event, cueex
 
 
 #SAVE this function
-functionFolder <- paste(getwd(), "/ALL HYBRID/Functions/", sep="")
+functionFolder <- paste(getwd(), "/Functions/", sep="")
 save(neuralhist, file = paste(functionFolder, "neuralhist.r", sep=""))
